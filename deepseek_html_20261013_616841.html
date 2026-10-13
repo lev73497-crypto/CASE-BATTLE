@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кейс Баттл</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  body {
+    background: radial-gradient(circle at top, #1a1f3a 0%, #0a0d1a 100%);
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 15px;
+  }
+  .container { max-width: 1300px; margin: 0 auto; }
+
+  header {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+    background: rgba(20,25,50,0.85);
+    border: 1px solid #2a3560;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 0 20px rgba(80,120,255,0.15);
+  }
+  h1 {
+    font-size: 22px;
+    background: linear-gradient(90deg, #6ea8ff, #b47aff, #ff7ab4);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .stat {
+    background: linear-gradient(135deg, #1c2444, #2a3560);
+    border: 1px solid #3a4a80;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .stat .money { color: #ffd54a; }
+  .stat .label { color: #8fa0cc; font-weight: 400; font-size: 12px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+  .tab {
+    flex: 1; min-width: 120px;
+    background: rgba(20,25,50,0.7);
+    border: 1px solid #2a3560;
+    color: #8fa0cc;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .tab:hover { background: rgba(40,50,90,0.9); color: #c0d0ff; }
+  .tab.active {
+    background: linear-gradient(135deg, #3a4a90, #5a3a90);
+    color: #fff;
+    border-color: #6ea8ff;
+    box-shadow: 0 0 15px rgba(110,168,255,0.4);
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* ============= SKIN VISUAL ============= */
+  .skin-visual {
+    width: 100%; height: 100px; border-radius: 10px;
+    position: relative; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .skin-visual::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.2), transparent 60%);
+    z-index: 2; pointer-events: none;
+  }
+  .skin-visual::after {
+    content: ''; position: absolute; top: 0; left: -100%;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: shine 3.5s infinite; z-index: 3;
+    pointer-events: none;
+    transform: skewX(-20deg);
+  }
+  @keyframes shine { 0% { left: -100%; } 100% { left: 200%; } }
+  .skin-visual .weapon-img {
+    width: 95%; height: 90%;
+    position: relative;
+    z-index: 4;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.85));
+  }
+  .skin-visual .weapon-img svg {
+    width: 100%; height: 100%; display: block;
+  }
+  .skin-visual .weapon-name-tag {
+    position: absolute; bottom: 4px; left: 6px; font-size: 9px;
+    color: rgba(255,255,255,0.9); font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.8px; z-index: 5; text-shadow: 0 1px 4px rgba(0,0,0,1);
+    background: rgba(0,0,0,0.35); padding: 1px 5px; border-radius: 3px;
+  }
+  .skin-visual .float-badge {
+    position: absolute; top: 4px; right: 6px; font-size: 9px; color: #fff;
+    background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px;
+    z-index: 5; font-weight: 800;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  /* ============= CASES ============= */
+  .cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+  .case-card {
+    background: linear-gradient(160deg, #1a2044, #12162e);
+    border: 2px solid #2a3560;
+    border-radius: 18px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .case-card::before {
+    content: ''; position: absolute; inset: -2px;
+    background: linear-gradient(135deg, transparent, currentColor, transparent);
+    border-radius: 18px; opacity: 0.15; z-index: 0;
+    animation: rotateGlow 4s linear infinite;
+  }
+  @keyframes rotateGlow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+  .case-card:hover {
+    transform: translateY(-6px);
+    border-color: #6ea8ff;
+    box-shadow: 0 15px 40px rgba(110,168,255,0.35);
+  }
+  .case-card .case-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 20%, currentColor, transparent 65%);
+    opacity: 0.12; z-index: 0;
+  }
+  .case-inner { position: relative; z-index: 1; }
+
+  /* Заголовок кейса с эмодзи и названием */
+  .case-header {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; margin-bottom: 6px;
+  }
+  .case-emoji {
+    font-size: 46px;
+    filter: drop-shadow(0 0 15px currentColor);
+    display: inline-block;
+    animation: floatCase 3s ease-in-out infinite;
+  }
+  @keyframes floatCase { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .case-title-block { text-align: left; }
+  .case-name { font-size: 20px; font-weight: 800; color: #d0e0ff; line-height: 1.1; }
+  .case-price { color: #ffd54a; font-weight: 800; font-size: 18px; margin-top: 2px; }
+
+  /* Превью скинов внутри кейса */
+  .case-preview-title {
+    font-size: 11px; color: #8fa0cc; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin: 14px 0 8px; text-align: left;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .case-preview-title span:last-child {
+    color: #6a7a9a; font-weight: 600; letter-spacing: 0.5px; font-size: 10px;
+  }
+
+  .case-preview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .preview-skin {
+    position: relative;
+    border-radius: 8px;
+    padding: 4px;
+    background: rgba(0,0,0,0.3);
+    border: 1.5px solid;
+    transition: transform 0.2s;
+    overflow: hidden;
+  }
+  .preview-skin:hover { transform: scale(1.08); z-index: 5; }
+  .preview-skin .skin-visual {
+    height: 58px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.7);
+  }
+  .preview-skin .skin-visual .weapon-img { width: 100%; height: 100%; }
+  .preview-skin .skin-visual::after { animation: shine 4s infinite; }
+  .preview-skin .skin-visual .weapon-name-tag { display: none; }
+  .preview-skin .skin-visual .float-badge { display: none; }
+  .preview-rarity-bar {
+    height: 3px; width: 100%; border-radius: 2px;
+    margin-top: 4px;
+  }
+
+  /* Кнопки кейса */
+  .case-actions {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .case-actions .btn { flex: 1; }
+
+  .btn-info {
+    background: rgba(60,80,140,0.4);
+    border: 1px solid #3a4a80;
+    color: #c0d0ff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-info:hover { background: rgba(80,110,180,0.6); }
+
+  /* Кейс особый (мифический) */
+  .case-card.special {
+    border-color: #ff3a5a;
+    box-shadow: 0 0 30px rgba(255,58,90,0.3);
+  }
+  .case-tag {
+    position: absolute; top: 12px; right: 12px;
+    background: linear-gradient(135deg, #ff3a5a, #ff8a3a);
+    color: #fff; font-size: 10px; font-weight: 800;
+    padding: 4px 10px; border-radius: 6px;
+    letter-spacing: 0.5px; z-index: 2;
+    text-transform: uppercase;
+  }
+
+  /* BUTTONS */
+  .btn {
+    background: linear-gradient(135deg, #3a6ad0, #6a3ad0);
+    color: #fff; border: none; padding: 10px 18px;
+    border-radius: 8px; font-weight: 700; cursor: pointer;
+    font-size: 14px; transition: all 0.2s; width: 100%;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.2); transform: scale(1.02); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.sell { background: linear-gradient(135deg, #3aa060, #30a0a0); }
+  .btn.upgrade { background: linear-gradient(135deg, #a03ad0, #d03a8a); font-size: 17px; padding: 16px; letter-spacing: 1px; }
+  .btn.small { padding: 6px 10px; font-size: 12px; width: auto; }
+  .btn.ghost { background: rgba(60,80,140,0.4); border: 1px solid #3a4a80; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 500; display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; animation: fadeIn 0.2s; }
+
+  .case-open-modal {
+    background: linear-gradient(160deg, #141a38, #0a0d20);
+    border: 2px solid #3a4a80; border-radius: 20px;
+    padding: 30px; max-width: 900px; width: 100%;
+    text-align: center; position: relative;
+    box-shadow: 0 0 60px rgba(110,168,255,0.4);
+  }
+  .case-open-modal h2 {
+    margin-bottom: 20px; font-size: 22px;
+    background: linear-gradient(90deg, #6ea8ff, #b47aff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .open-roulette {
+    position: relative; height: 190px;
+    background: #060812; border-radius: 12px;
+    border: 2px solid #1a2044; overflow: hidden; margin-bottom: 20px;
+  }
+  .open-track {
+    display: flex; position: absolute; top: 0; left: 0; height: 100%;
+    will-change: transform;
+  }
+  .open-item {
+    width: 170px; height: 100%; flex-shrink: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-right: 1px solid rgba(255,255,255,0.05); padding: 8px;
+  }
+  .open-item .skin-visual { height: 120px; margin-bottom: 4px; }
+  .open-item .name { font-size: 11px; color: #c0d0ff; font-weight: 700; text-align: center; line-height: 1.15; }
+  .open-pointer {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, transparent, #ffd54a, #ffd54a, transparent);
+    z-index: 10; box-shadow: 0 0 20px #ffd54a;
+  }
+  .open-pointer::before, .open-pointer::after {
+    content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+    border-left: 10px solid transparent; border-right: 10px solid transparent;
+  }
+  .open-pointer::before { top: -2px; border-top: 12px solid #ffd54a; }
+  .open-pointer::after { bottom: -2px; border-bottom: 12px solid #ffd54a; }
+
+  .open-result { min-height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+  .open-result .result-card {
+    display: inline-flex; flex-direction: column; align-items: center;
+    padding: 15px 25px; border-radius: 14px;
+    background: rgba(20,25,50,0.9); border: 2px solid;
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0;
+  }
+  @keyframes popIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .open-result .result-card .skin-visual { width: 220px; height: 130px; }
+  .open-result .result-card .name { font-size: 16px; font-weight: 800; margin-top: 10px; }
+  .open-result .result-card .price { color: #ffd54a; font-weight: 800; margin-top: 4px; }
+  .open-result .result-card .rarity-tag { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* UPGRADER */
+  .upgrader {
+    display: grid; grid-template-columns: 1fr 340px 1fr; gap: 20px; align-items: start;
+  }
+  @media (max-width: 950px) { .upgrader { grid-template-columns: 1fr; } }
+
+  .upg-side-title {
+    font-size: 13px; color: #8fa0cc; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .upg-slot {
+    background: linear-gradient(160deg, #1a2044, #12162e);
+    border: 2px solid #2a3560; border-radius: 14px;
+    padding: 16px; min-height: 240px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; transition: all 0.25s;
+  }
+  .upg-slot.empty {
+    border-style: dashed; color: #6a7a9a; font-size: 14px; text-align: center;
+  }
+  .upg-slot .skin-visual { height: 130px; width: 100%; }
+  .upg-slot .name { font-weight: 800; margin: 12px 0 6px; font-size: 16px; text-align: center; }
+  .upg-slot .price { color: #ffd54a; font-weight: 800; font-size: 18px; }
+  .upg-slot .rarity-tag { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
+
+  .upg-center {
+    background: linear-gradient(160deg, #141a38, #0d1128);
+    border: 2px solid #2a3560; border-radius: 16px;
+    padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+
+  .upg-multiplier { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; width: 100%; }
+  .mult-btn {
+    background: rgba(30,40,80,0.7); border: 1px solid #3a4a80;
+    color: #c0d0ff; padding: 6px 10px; border-radius: 6px;
+    cursor: pointer; font-weight: 800; font-size: 13px;
+    transition: all 0.15s; min-width: 42px;
+  }
+  .mult-btn:hover:not(:disabled) { background: rgba(60,80,140,0.9); transform: scale(1.05); }
+  .mult-btn.active {
+    background: linear-gradient(135deg, #3a6ad0, #6a3ad0);
+    color: #fff; border-color: #6ea8ff;
+    box-shadow: 0 0 12px rgba(110,168,255,0.6);
+    transform: scale(1.08);
+  }
+  .mult-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .wheel-wrapper { position: relative; width: 260px; height: 260px; margin: 5px 0; }
+  .wheel-outer {
+    position: absolute; inset: 0; border-radius: 50%;
+    box-shadow: 0 0 40px rgba(110,168,255,0.35), inset 0 0 30px rgba(0,0,0,0.8);
+    border: 4px solid #2a3560; overflow: hidden; background: #0a0d1a;
+  }
+  .wheel-outer svg { display: block; width: 100%; height: 100%; }
+  .wheel-arrow {
+    position: absolute; top: 50%; left: 50%;
+    width: 50%; height: 6px; transform-origin: 0 50%;
+    z-index: 30; pointer-events: none;
+    transform: translateY(-50%) rotate(0deg);
+    will-change: transform;
+  }
+  .wheel-arrow::before {
+    content: ''; position: absolute; right: -10px; top: 50%;
+    transform: translateY(-50%); width: 0; height: 0;
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
+    border-left: 22px solid #ffd54a;
+    filter: drop-shadow(0 0 10px #ffd54a) drop-shadow(0 0 4px #ff8a00);
+  }
+  .wheel-arrow::after {
+    content: ''; position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%); width: 100%; height: 3px;
+    background: linear-gradient(90deg, transparent, #ffd54a 40%, #ffd54a);
+    box-shadow: 0 0 8px #ffd54a; border-radius: 2px;
+  }
+  .wheel-arrow.spinning { transition: transform 5s cubic-bezier(0.18, 0.85, 0.25, 1); }
+  .wheel-arrow.instant { transition: none; }
+  .wheel-hub {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 55px; height: 55px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #4a5aa0, #1a2044);
+    border: 3px solid #6ea8ff; z-index: 25;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; box-shadow: 0 0 20px rgba(110,168,255,0.7);
+  }
+
+  .upg-info { text-align: center; width: 100%; }
+  .upg-info .chance-line { font-size: 13px; color: #8fa0cc; margin-bottom: 4px; }
+  .upg-info .chance-big {
+    font-size: 34px; font-weight: 900;
+    background: linear-gradient(90deg, #4aa05a, #a0ffa0);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1; transition: all 0.3s;
+  }
+  .upg-info .chance-big.low { background: linear-gradient(90deg, #ff3a5a, #ff8a5a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .upg-info .chance-big.mid { background: linear-gradient(90deg, #ffd54a, #ffaa3a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .upg-info .profit { font-size: 13px; color: #8fa0cc; margin-top: 8px; }
+  .upg-info .profit .plus { color: #4aa05a; font-weight: 800; }
+  .upg-info .profit .minus { color: #d03a3a; font-weight: 800; }
+
+  .upg-result { min-height: 26px; text-align: center; font-weight: 800; font-size: 15px; }
+
+  .upg-picker { margin-top: 25px; }
+  .upg-picker-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  }
+  .upg-picker-header h3 { font-size: 16px; color: #c0d0ff; }
+  .upg-picker-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px; max-height: 460px; overflow-y: auto; padding-right: 5px;
+  }
+  .upg-picker-grid::-webkit-scrollbar { width: 8px; }
+  .upg-picker-grid::-webkit-scrollbar-thumb { background: #2a3560; border-radius: 4px; }
+
+  .picker-item {
+    background: linear-gradient(160deg, #1a2044, #12162e);
+    border-radius: 10px; padding: 8px; text-align: center;
+    border: 2px solid; cursor: pointer;
+    transition: all 0.2s; position: relative;
+  }
+  .picker-item:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(110,168,255,0.35); }
+  .picker-item.selected { outline: 3px solid #6ea8ff; box-shadow: 0 0 25px rgba(110,168,255,0.6); }
+  .picker-item .skin-visual { height: 80px; margin-bottom: 4px; }
+  .picker-item .name { font-size: 11px; font-weight: 700; line-height: 1.15; min-height: 26px; }
+  .picker-item .price { color: #ffd54a; font-weight: 800; font-size: 12px; margin-top: 4px; }
+
+  /* INVENTORY */
+  .inventory-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;
+  }
+  .inv-item {
+    background: linear-gradient(160deg, #1a2044, #12162e);
+    border-radius: 10px; padding: 10px; text-align: center;
+    border: 2px solid; transition: transform 0.2s;
+  }
+  .inv-item:hover { transform: translateY(-3px); }
+  .inv-item .name { font-size: 12px; font-weight: 700; margin: 6px 0 4px; line-height: 1.2; min-height: 28px; }
+  .inv-item .price { color: #ffd54a; font-weight: 800; font-size: 13px; margin-bottom: 8px; }
+  .inv-item .rarity-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+
+  .rarity-common { border-color: #6a7a9a; }
+  .rarity-uncommon { border-color: #4aa05a; }
+  .rarity-rare { border-color: #3a6ad0; }
+  .rarity-epic { border-color: #a03ad0; }
+  .rarity-legendary { border-color: #ffd54a; box-shadow: 0 0 15px rgba(255,213,74,0.3); }
+  .rarity-mythic { border-color: #ff3a5a; box-shadow: 0 0 20px rgba(255,58,90,0.5); }
+
+  .empty-msg { text-align: center; padding: 40px; color: #6a7a9a; font-size: 15px; }
+
+  /* BATTLE */
+  .roulette-wrap {
+    background: #0a0d1a; border: 1px solid #2a3560;
+    border-radius: 14px; padding: 20px; margin-bottom: 15px;
+  }
+  .roulette {
+    position: relative; overflow: hidden; height: 200px;
+    background: #060812; border-radius: 10px; border: 2px solid #1a2044;
+  }
+  .roulette-track {
+    display: flex; position: absolute; top: 0; left: 0; height: 100%;
+    will-change: transform;
+  }
+  .roulette-item {
+    width: 170px; height: 100%; flex-shrink: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-right: 1px solid rgba(255,255,255,0.05); padding: 8px;
+  }
+  .roulette-item .skin-visual { height: 120px; margin-bottom: 4px; }
+  .roulette-item .name { font-size: 11px; color: #c0d0ff; font-weight: 700; text-align: center; line-height: 1.1; }
+  .pointer {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, transparent, #ffd54a, #ffd54a, transparent);
+    z-index: 10; box-shadow: 0 0 20px #ffd54a;
+  }
+  .pointer::before, .pointer::after {
+    content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+    border-left: 10px solid transparent; border-right: 10px solid transparent;
+  }
+  .pointer::before { top: -2px; border-top: 12px solid #ffd54a; }
+  .pointer::after { bottom: -2px; border-bottom: 12px solid #ffd54a; }
+
+  .result-popup { text-align: center; margin-top: 12px; font-size: 16px; font-weight: 700; min-height: 24px; }
+
+  .case-selector { margin-bottom: 15px; }
+  .case-selector label { color: #8fa0cc; margin-right: 8px; font-size: 14px; }
+  .case-selector select {
+    background: #1a2044; color: #e0e0e0; border: 1px solid #3a4a80;
+    padding: 8px 12px; border-radius: 8px; font-size: 14px; cursor: pointer;
+  }
+
+  .toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #3a6ad0, #6a3ad0);
+    color: #fff; padding: 14px 28px; border-radius: 10px;
+    font-weight: 800; z-index: 1000;
+    transition: transform 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: linear-gradient(135deg, #d03a3a, #a02020); }
+  .toast.success { background: linear-gradient(135deg, #3aa060, #20a070); }
+
+  .section-title {
+    font-size: 18px; font-weight: 800; margin-bottom: 15px; color: #c0d0ff;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 17px; }
+    .roulette-item { width: 130px; }
+    .wheel-wrapper { width: 220px; height: 220px; }
+    .open-item { width: 130px; }
+    .cases-grid { grid-template-columns: 1fr; }
+    .case-preview { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎰 КЕЙС БАТТЛ</h1>
+    <div class="stats">
+      <div class="stat"><span class="label">Баланс:</span><span class="money" id="balance">500 ₽</span></div>
+      <div class="stat"><span class="label">Скинов:</span><span id="invCount">0</span></div>
+      <div class="stat"><span class="label">Всего:</span><span class="money" id="totalValue">0 ₽</span></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="cases">📦 Кейсы</div>
+    <div class="tab" data-tab="battle">⚔️ Баттл</div>
+    <div class="tab" data-tab="inventory">🎒 Инвентарь</div>
+    <div class="tab" data-tab="upgrade">⬆️ Апгрейдер</div>
+  </div>
+
+  <div class="panel active" id="panel-cases">
+    <div class="cases-grid" id="casesGrid"></div>
+  </div>
+
+  <div class="panel" id="panel-battle">
+    <div class="case-selector">
+      <label>Выберите кейс:</label>
+      <select id="battleCaseSelect"></select>
+    </div>
+    <div class="roulette-wrap">
+      <div class="roulette">
+        <div class="pointer"></div>
+        <div class="roulette-track" id="rouletteTrack"></div>
+      </div>
+      <div class="result-popup" id="battleResult"></div>
+      <div style="margin-top:15px; text-align:center;">
+        <button class="btn" id="openBattleBtn" style="max-width:300px; margin:0 auto;">🎲 Крутить рулетку</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-inventory">
+    <div class="section-title">
+      <span>🎒 Ваш инвентарь</span>
+      <button class="btn small sell" id="sellAllBtn">Продать всё</button>
+    </div>
+    <div class="inventory-grid" id="inventoryGrid"></div>
+  </div>
+
+  <div class="panel" id="panel-upgrade">
+    <div class="section-title"><span>⬆️ Апгрейдер — Испытай удачу</span></div>
+
+    <div class="upgrader">
+      <div>
+        <div class="upg-side-title">Ваш скин</div>
+        <div class="upg-slot empty" id="upgFromSlot">Выберите скин из инвентаря ниже</div>
+      </div>
+
+      <div class="upg-center">
+        <div class="upg-side-title" style="text-align:center;">Множитель</div>
+        <div class="upg-multiplier" id="multiplierBar"></div>
+
+        <div class="wheel-wrapper">
+          <div class="wheel-outer" id="upgWheelOuter"></div>
+          <div class="wheel-arrow instant" id="upgArrow"></div>
+          <div class="wheel-hub">🎯</div>
+        </div>
+
+        <div class="upg-info">
+          <div class="chance-line">Шанс успеха</div>
+          <div class="chance-big" id="chanceBig">—</div>
+          <div class="profit" id="profitInfo"></div>
+        </div>
+
+        <button class="btn upgrade" id="doUpgradeBtn" disabled>⬆️ АПГРЕЙДНУТЬ</button>
+        <div class="upg-result" id="upgResult"></div>
+      </div>
+
+      <div>
+        <div class="upg-side-title">Вы получите</div>
+        <div class="upg-slot empty" id="upgToSlot">Выберите скин для апгрейда</div>
+      </div>
+    </div>
+
+    <div class="upg-picker">
+      <div class="upg-picker-header">
+        <h3>🎒 Инвентарь для апгрейда (<span id="upgInvCount">0</span>)</h3>
+        <button class="btn small ghost" id="clearUpgBtn">Сбросить</button>
+      </div>
+      <div class="upg-picker-grid" id="upgPickerGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="caseModal">
+  <div class="case-open-modal">
+    <h2 id="modalTitle">Открытие кейса</h2>
+    <div class="open-roulette">
+      <div class="open-pointer"></div>
+      <div class="open-track" id="openTrack"></div>
+    </div>
+    <div class="open-result" id="openResult"></div>
+    <button class="btn" id="closeModalBtn" style="max-width:200px; margin:0 auto; display:none;">Забрать</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ================== SVG-АРТЫ ОРУЖИЯ ==================
+function makeDefs(id, c1, c2, c3) {
+  return `
+    <linearGradient id="body_${id}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${c1}"/>
+      <stop offset="50%" stop-color="${c3 || c1}"/>
+      <stop offset="100%" stop-color="${c2}"/>
+    </linearGradient>
+    <linearGradient id="dark_${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a3a3a"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+    <linearGradient id="metal_${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a8a8a8"/>
+      <stop offset="50%" stop-color="#5a5a5a"/>
+      <stop offset="100%" stop-color="#2a2a2a"/>
+    </linearGradient>
+    <linearGradient id="accent_${id}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${c2}" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="${c1}" stop-opacity="0.5"/>
+    </linearGradient>
+    <filter id="shadow_${id}" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="1" dy="2" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  `;
+}
+
+const WEAPON_ART = {
+  glock: (c1, c2, c3) => `
+    <svg viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('gl', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_gl)">
+        <rect x="60" y="42" width="120" height="22" rx="3" fill="url(#body_gl)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 70 48 L 70 60 M 85 48 L 85 60 M 100 48 L 100 60 M 115 48 L 115 60 M 130 48 L 130 60 M 145 48 L 145 60 M 160 48 L 160 60" stroke="${c2}" stroke-width="2" opacity="0.55"/>
+        <path d="M 66 46 L 66 62 M 70 46 L 70 62 M 74 46 L 74 62 M 78 46 L 78 62 M 82 46 L 82 62" stroke="#1a1a1a" stroke-width="1.5"/>
+        <rect x="178" y="48" width="40" height="10" rx="2" fill="url(#metal_gl)" stroke="#0a0a0a" stroke-width="1"/>
+        <circle cx="218" cy="53" r="3" fill="#0a0a0a"/>
+        <path d="M 75 64 L 66 118 L 100 118 L 110 64 Z" fill="url(#body_gl)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <g opacity="0.4">
+          <circle cx="80" cy="75" r="2" fill="#0a0a0a"/>
+          <circle cx="88" cy="75" r="2" fill="#0a0a0a"/>
+          <circle cx="96" cy="75" r="2" fill="#0a0a0a"/>
+          <circle cx="78" cy="85" r="2" fill="#0a0a0a"/>
+          <circle cx="86" cy="85" r="2" fill="#0a0a0a"/>
+          <circle cx="94" cy="85" r="2" fill="#0a0a0a"/>
+          <circle cx="76" cy="95" r="2" fill="#0a0a0a"/>
+          <circle cx="84" cy="95" r="2" fill="#0a0a0a"/>
+          <circle cx="92" cy="95" r="2" fill="#0a0a0a"/>
+          <circle cx="74" cy="105" r="2" fill="#0a0a0a"/>
+          <circle cx="82" cy="105" r="2" fill="#0a0a0a"/>
+          <circle cx="90" cy="105" r="2" fill="#0a0a0a"/>
+        </g>
+        <rect x="78" y="90" width="24" height="8" fill="url(#accent_gl)" stroke="#0a0a0a" stroke-width="1" opacity="0.9"/>
+        <path d="M 105 64 Q 110 78 118 78" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+        <path d="M 105 64 Q 110 78 118 78" stroke="${c2}" stroke-width="1.5" fill="none" opacity="0.7"/>
+        <rect x="115" y="36" width="5" height="8" fill="#0a0a0a"/>
+        <rect x="155" y="36" width="5" height="8" fill="#0a0a0a"/>
+        <rect x="56" y="52" width="8" height="14" rx="2" fill="url(#metal_gl)" stroke="#0a0a0a" stroke-width="1"/>
+      </g>
+    </svg>
+  `,
+  usp: (c1, c2, c3) => `
+    <svg viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('us', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_us)">
+        <rect x="55" y="42" width="105" height="22" rx="3" fill="url(#body_us)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 65 50 L 65 58 M 80 50 L 80 58 M 95 50 L 95 58 M 110 50 L 110 58 M 125 50 L 125 58 M 140 50 L 140 58" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <rect x="160" y="46" width="30" height="14" rx="2" fill="url(#metal_us)" stroke="#0a0a0a" stroke-width="1"/>
+        <rect x="185" y="40" width="50" height="26" rx="6" fill="url(#dark_us)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <line x1="195" y1="45" x2="195" y2="61" stroke="${c2}" stroke-width="1.5" opacity="0.6"/>
+        <line x1="205" y1="45" x2="205" y2="61" stroke="${c2}" stroke-width="1.5" opacity="0.6"/>
+        <line x1="215" y1="45" x2="215" y2="61" stroke="${c2}" stroke-width="1.5" opacity="0.6"/>
+        <line x1="225" y1="45" x2="225" y2="61" stroke="${c2}" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="232" cy="53" r="4" fill="#0a0a0a"/>
+        <path d="M 70 64 L 62 118 L 96 118 L 106 64 Z" fill="url(#body_us)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <g opacity="0.4">
+          <circle cx="75" cy="75" r="2" fill="#0a0a0a"/>
+          <circle cx="83" cy="75" r="2" fill="#0a0a0a"/>
+          <circle cx="91" cy="75" r="2" fill="#0a0a0a"/>
+          <circle cx="73" cy="85" r="2" fill="#0a0a0a"/>
+          <circle cx="81" cy="85" r="2" fill="#0a0a0a"/>
+          <circle cx="89" cy="85" r="2" fill="#0a0a0a"/>
+        </g>
+        <rect x="72" y="90" width="22" height="8" fill="url(#accent_us)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 100 64 Q 105 78 112 78" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+        <rect x="105" y="36" width="5" height="8" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  p250: (c1, c2, c3) => `
+    <svg viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('p2', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_p2)">
+        <rect x="55" y="45" width="115" height="20" rx="3" fill="url(#body_p2)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 65 47 L 75 63 M 80 47 L 90 63 M 95 47 L 105 63 M 110 47 L 120 63 M 125 47 L 135 63 M 140 47 L 150 63" stroke="${c2}" stroke-width="2.5" opacity="0.6"/>
+        <rect x="170" y="49" width="42" height="12" rx="2" fill="url(#metal_p2)" stroke="#0a0a0a" stroke-width="1"/>
+        <circle cx="210" cy="55" r="3" fill="#0a0a0a"/>
+        <path d="M 68 65 L 60 118 L 96 118 L 106 65 Z" fill="url(#body_p2)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="70" y="92" width="24" height="8" fill="url(#accent_p2)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 100 65 Q 105 78 112 78" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+        <rect x="105" y="39" width="5" height="8" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  deagle: (c1, c2, c3) => `
+    <svg viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('de', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_de)">
+        <rect x="50" y="32" width="130" height="30" rx="3" fill="url(#body_de)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="60" y="44" width="110" height="2" fill="#0a0a0a" opacity="0.7"/>
+        <g stroke="#0a0a0a" stroke-width="2" opacity="0.9">
+          <line x1="68" y1="36" x2="68" y2="48"/>
+          <line x1="78" y1="36" x2="78" y2="48"/>
+          <line x1="88" y1="36" x2="88" y2="48"/>
+          <line x1="98" y1="36" x2="98" y2="48"/>
+          <line x1="108" y1="36" x2="108" y2="48"/>
+        </g>
+        <path d="M 55 55 L 175 55" stroke="${c2}" stroke-width="2" opacity="0.8"/>
+        <rect x="180" y="40" width="55" height="14" rx="2" fill="url(#metal_de)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="235" cy="47" r="4" fill="#0a0a0a"/>
+        <path d="M 65 62 L 55 120 L 92 120 L 103 62 Z" fill="url(#body_de)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="68" y="92" width="24" height="10" fill="url(#accent_de)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 100 62 Q 108 76 116 76" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+        <rect x="100" y="24" width="6" height="10" fill="#0a0a0a"/>
+        <rect x="140" y="24" width="6" height="10" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  fiveseven: (c1, c2, c3) => `
+    <svg viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('f5', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_f5)">
+        <rect x="55" y="45" width="115" height="20" rx="3" fill="url(#body_f5)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 62 50 L 165 50" stroke="${c2}" stroke-width="2.5" opacity="0.9"/>
+        <path d="M 62 60 L 165 60" stroke="${c2}" stroke-width="2.5" opacity="0.9"/>
+        <rect x="170" y="48" width="45" height="14" rx="2" fill="url(#metal_f5)" stroke="#0a0a0a" stroke-width="1"/>
+        <circle cx="212" cy="55" r="3" fill="#0a0a0a"/>
+        <path d="M 68 65 L 60 118 L 96 118 L 106 65 Z" fill="url(#body_f5)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="70" y="92" width="24" height="8" fill="url(#accent_f5)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 100 65 Q 105 78 112 78" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+        <rect x="105" y="39" width="5" height="8" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  ak47: (c1, c2, c3) => `
+    <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('ak', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_ak)">
+        <path d="M 8 70 L 60 62 L 68 100 L 15 108 Z" fill="url(#body_ak)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 20 78 L 55 74 M 22 88 L 55 84 M 24 98 L 55 94" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <rect x="60" y="58" width="140" height="35" rx="3" fill="url(#body_ak)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 65 68 L 195 68" stroke="${c2}" stroke-width="2.5" opacity="0.7"/>
+        <path d="M 65 84 L 195 84" stroke="${c2}" stroke-width="2.5" opacity="0.7"/>
+        <rect x="100" y="52" width="90" height="8" rx="2" fill="url(#metal_ak)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 115 90 Q 120 118 140 132 L 165 128 Q 158 108 155 90 Z" fill="url(#body_ak)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 128 100 L 158 96 M 130 110 L 160 106 M 132 120 L 162 116" stroke="${c2}" stroke-width="2" opacity="0.6"/>
+        <rect x="200" y="68" width="130" height="10" rx="2" fill="url(#metal_ak)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="200" y="56" width="115" height="8" rx="3" fill="url(#metal_ak)" stroke="#0a0a0a" stroke-width="1"/>
+        <rect x="200" y="78" width="100" height="18" fill="url(#body_ak)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 215 80 L 215 94 M 235 80 L 235 94 M 255 80 L 255 94 M 275 80 L 275 94" stroke="${c2}" stroke-width="2" opacity="0.6"/>
+        <rect x="330" y="64" width="30" height="20" rx="3" fill="url(#metal_ak)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="365" cy="74" r="5" fill="#0a0a0a"/>
+        <path d="M 88 92 L 82 130 L 112 130 L 118 92 Z" fill="url(#body_ak)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 103 92 Q 108 106 116 105" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+        <path d="M 100 92 L 122 92" stroke="#0a0a0a" stroke-width="2"/>
+        <rect x="108" y="46" width="6" height="10" fill="#0a0a0a"/>
+        <rect x="280" y="52" width="6" height="10" fill="#0a0a0a"/>
+        <rect x="345" y="58" width="4" height="6" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  m4a4: (c1, c2, c3) => `
+    <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('m4', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_m4)">
+        <path d="M 8 72 L 60 64 L 68 102 L 15 110 Z" fill="url(#body_m4)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 20 80 L 55 76 M 22 92 L 55 88" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <rect x="60" y="60" width="150" height="34" rx="3" fill="url(#body_m4)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 65 70 L 205 70" stroke="${c2}" stroke-width="2.5" opacity="0.6"/>
+        <path d="M 65 86 L 205 86" stroke="${c2}" stroke-width="2.5" opacity="0.6"/>
+        <path d="M 115 92 L 112 122 L 145 122 L 148 92 Z" fill="url(#body_m4)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 118 100 L 145 100 M 117 108 L 144 108 M 116 116 L 143 116" stroke="${c2}" stroke-width="1.5" opacity="0.6"/>
+        <rect x="210" y="70" width="120" height="10" rx="2" fill="url(#metal_m4)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 130 60 L 130 46 L 185 46 L 185 60" stroke="url(#metal_m4)" stroke-width="4" fill="none"/>
+        <path d="M 130 46 L 185 46" stroke="#0a0a0a" stroke-width="1"/>
+        <rect x="205" y="78" width="105" height="18" fill="url(#body_m4)" stroke="#0a0a0a" stroke-width="1"/>
+        <g stroke="#0a0a0a" stroke-width="1.5" opacity="0.7">
+          <line x1="215" y1="80" x2="215" y2="94"/>
+          <line x1="225" y1="80" x2="225" y2="94"/>
+          <line x1="235" y1="80" x2="235" y2="94"/>
+          <line x1="245" y1="80" x2="245" y2="94"/>
+          <line x1="255" y1="80" x2="255" y2="94"/>
+          <line x1="265" y1="80" x2="265" y2="94"/>
+          <line x1="275" y1="80" x2="275" y2="94"/>
+          <line x1="285" y1="80" x2="285" y2="94"/>
+          <line x1="295" y1="80" x2="295" y2="94"/>
+        </g>
+        <rect x="325" y="66" width="28" height="18" rx="3" fill="url(#metal_m4)" stroke="#0a0a0a" stroke-width="1"/>
+        <circle cx="358" cy="75" r="4" fill="#0a0a0a"/>
+        <path d="M 90 94 L 84 132 L 114 132 L 120 94 Z" fill="url(#body_m4)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 105 94 Q 110 108 118 107" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+        <rect x="102" y="48" width="6" height="12" fill="#0a0a0a"/>
+        <rect x="290" y="54" width="6" height="12" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  m4a1s: (c1, c2, c3) => `
+    <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('m4s', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_m4s)">
+        <path d="M 8 72 L 60 64 L 68 102 L 15 110 Z" fill="url(#body_m4s)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 20 80 L 55 76 M 22 92 L 55 88" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <rect x="60" y="60" width="140" height="34" rx="3" fill="url(#body_m4s)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 65 70 L 195 70" stroke="${c2}" stroke-width="2.5" opacity="0.7"/>
+        <path d="M 65 86 L 195 86" stroke="${c2}" stroke-width="2.5" opacity="0.7"/>
+        <path d="M 110 92 L 108 122 L 140 122 L 143 92 Z" fill="url(#body_m4s)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="200" y="70" width="55" height="10" rx="2" fill="url(#metal_m4s)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 125 60 L 125 46 L 175 46 L 175 60" stroke="url(#metal_m4s)" stroke-width="4" fill="none"/>
+        <rect x="250" y="60" width="90" height="30" rx="8" fill="url(#dark_m4s)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <line x1="265" y1="64" x2="265" y2="86" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <line x1="280" y1="64" x2="280" y2="86" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <line x1="295" y1="64" x2="295" y2="86" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <line x1="310" y1="64" x2="310" y2="86" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <line x1="325" y1="64" x2="325" y2="86" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <circle cx="335" cy="75" r="4" fill="#0a0a0a"/>
+        <rect x="200" y="78" width="55" height="18" fill="url(#body_m4s)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 88 94 L 82 132 L 112 132 L 118 94 Z" fill="url(#body_m4s)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 103 94 Q 108 108 116 107" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+        <rect x="100" y="48" width="6" height="12" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  awp: (c1, c2, c3) => `
+    <svg viewBox="0 0 420 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('awp', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_awp)">
+        <path d="M 5 68 L 70 60 L 78 105 L 12 112 Z" fill="url(#body_awp)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 15 76 L 65 72 M 18 88 L 65 84 M 20 100 L 60 96" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <ellipse cx="35" cy="88" rx="12" ry="8" fill="#0a0a0a" opacity="0.7"/>
+        <ellipse cx="35" cy="88" rx="12" ry="8" fill="none" stroke="${c2}" stroke-width="1.5"/>
+        <rect x="70" y="56" width="150" height="38" rx="3" fill="url(#body_awp)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 75 68 L 215 68" stroke="${c2}" stroke-width="3" opacity="0.65"/>
+        <path d="M 75 86 L 215 86" stroke="${c2}" stroke-width="3" opacity="0.65"/>
+        <rect x="115" y="94" width="55" height="22" rx="4" fill="url(#body_awp)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="220" y="68" width="150" height="12" rx="2" fill="url(#metal_awp)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="365" y="60" width="45" height="28" rx="5" fill="url(#dark_awp)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="405" cy="74" r="5" fill="#0a0a0a"/>
+        <rect x="105" y="30" width="130" height="22" rx="11" fill="url(#dark_awp)" stroke="#0a0a0a" stroke-width="2"/>
+        <ellipse cx="118" cy="41" rx="8" ry="9" fill="${c1}" stroke="#0a0a0a" stroke-width="1.5"/>
+        <ellipse cx="118" cy="41" rx="4" ry="5" fill="#000"/>
+        <ellipse cx="120" cy="38" rx="2" ry="2" fill="#fff" opacity="0.7"/>
+        <ellipse cx="222" cy="41" rx="8" ry="9" fill="${c1}" stroke="#0a0a0a" stroke-width="1.5"/>
+        <ellipse cx="222" cy="41" rx="4" ry="5" fill="#000"/>
+        <rect x="125" y="52" width="12" height="8" fill="url(#metal_awp)"/>
+        <rect x="200" y="52" width="12" height="8" fill="url(#metal_awp)"/>
+        <rect x="200" y="58" width="30" height="8" rx="2" fill="url(#metal_awp)"/>
+        <path d="M 105 94 L 96 135 L 128 135 L 138 94 Z" fill="url(#body_awp)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 122 94 Q 128 108 136 107" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+      </g>
+    </svg>
+  `,
+  ssg: (c1, c2, c3) => `
+    <svg viewBox="0 0 380 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>${makeDefs('ssg', c1, c2, c3)}</defs>
+      <g filter="url(#shadow_ssg)">
+        <path d="M 8 62 L 65 56 L 72 96 L 15 102 Z" fill="url(#body_ssg)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 18 70 L 60 66 M 20 80 L 60 76 M 22 90 L 60 86" stroke="${c2}" stroke-width="2" opacity="0.5"/>
+        <rect x="65" y="52" width="135" height="34" rx="3" fill="url(#body_ssg)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 70 62 L 195 62" stroke="${c2}" stroke-width="2.5" opacity="0.6"/>
+        <path d="M 70 78 L 195 78" stroke="${c2}" stroke-width="2.5" opacity="0.6"/>
+        <rect x="105" y="86" width="50" height="20" rx="3" fill="url(#body_ssg)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="200" y="62" width="130" height="10" rx="2" fill="url(#metal_ssg)" stroke="#0a0a0a" stroke-width="1"/>
+        <rect x="325" y="56" width="32" height="22" rx="4" fill="url(#dark_ssg)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="352" cy="67" r="4" fill="#0a0a0a"/>
+        <rect x="95" y="28" width="105" height="20" rx="10" fill="url(#dark_ssg)" stroke="#0a0a0a" stroke-width="2"/>
+        <ellipse cx="107" cy="38" rx="7" ry="8" fill="${c1}" stroke="#0a0a0a" stroke-width="1.5"/>
+        <ellipse cx="107" cy="38" rx="3" ry="4" fill="#000"/>
+        <ellipse cx="188" cy="38" rx="7" ry="8" fill="${c1}" stroke="#0a0a0a" stroke-width="1.5"/>
+        <ellipse cx="188" cy="38" rx="3" ry="4" fill="#000"/>
+        <path d="M 98 86 L 90 122 L 120 122 L 130 86 Z" fill="url(#body_ssg)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 116 86 Q 122 100 130 99" stroke="#0a0a0a" stroke-width="3" fill="none"/>
+      </g>
+    </svg>
+  `,
+  butterfly: (c1, c2, c3) => `
+    <svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        ${makeDefs('bf', c1, c2, c3)}
+        <linearGradient id="blade_bf" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#e0e0e0"/>
+          <stop offset="50%" stop-color="#f5f5f5"/>
+          <stop offset="100%" stop-color="#a0a0a0"/>
+        </linearGradient>
+      </defs>
+      <g filter="url(#shadow_bf)">
+        <path d="M 20 60 Q 40 30 80 40 L 90 55 Q 60 60 45 78 Z" fill="url(#body_bf)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 35 50 L 70 48 M 38 58 L 72 56" stroke="${c2}" stroke-width="2" opacity="0.6"/>
+        <path d="M 20 100 Q 40 130 80 120 L 90 105 Q 60 100 45 82 Z" fill="url(#body_bf)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 35 110 L 70 112 M 38 102 L 72 104" stroke="${c2}" stroke-width="2" opacity="0.6"/>
+        <circle cx="80" cy="55" r="6" fill="url(#metal_bf)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="80" cy="105" r="6" fill="url(#metal_bf)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="85" cy="80" r="8" fill="url(#metal_bf)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="85" cy="80" r="3" fill="#0a0a0a"/>
+        <path d="M 90 68 L 290 60 L 305 80 L 290 100 L 90 92 Z" fill="url(#blade_bf)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 95 72 L 285 66" stroke="#fff" stroke-width="2.5" opacity="0.85"/>
+        <path d="M 105 76 L 130 74 L 145 80 L 165 74 L 185 80 L 205 74 L 230 80 L 250 74 L 275 80" stroke="${c2}" stroke-width="2" fill="none" opacity="0.7"/>
+        <ellipse cx="130" cy="80" rx="6" ry="4" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  karambit: (c1, c2, c3) => `
+    <svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        ${makeDefs('kb', c1, c2, c3)}
+        <linearGradient id="blade_kb" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#d0d0d0"/>
+          <stop offset="50%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#909090"/>
+        </linearGradient>
+      </defs>
+      <g filter="url(#shadow_kb)">
+        <circle cx="55" cy="90" r="25" fill="none" stroke="url(#body_kb)" stroke-width="10"/>
+        <circle cx="55" cy="90" r="25" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 75 72 Q 105 55 125 72 L 130 92 Q 105 105 80 95 Z" fill="url(#body_kb)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 85 78 L 120 76 M 85 88 L 118 86" stroke="${c2}" stroke-width="2" opacity="0.6"/>
+        <path d="M 125 72 Q 140 92 120 112 L 108 105 Q 122 92 122 80 Z" fill="url(#body_kb)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 130 82 Q 200 55 290 100 Q 275 120 235 118 Q 180 112 135 100 Z" fill="url(#blade_kb)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 140 85 Q 200 62 285 100" stroke="#fff" stroke-width="2.5" opacity="0.9" fill="none"/>
+        <path d="M 285 100 L 305 95 L 295 108 Z" fill="url(#blade_kb)" stroke="#0a0a0a" stroke-width="1"/>
+        <path d="M 155 88 L 175 80 M 185 85 L 205 78 M 215 88 L 235 82 M 245 92 L 265 88" stroke="${c2}" stroke-width="2" opacity="0.6"/>
+      </g>
+    </svg>
+  `,
+  bayonet: (c1, c2, c3) => `
+    <svg viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        ${makeDefs('bn', c1, c2, c3)}
+        <linearGradient id="blade_bn" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#c8c8c8"/>
+          <stop offset="50%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#888888"/>
+        </linearGradient>
+      </defs>
+      <g filter="url(#shadow_bn)">
+        <rect x="15" y="55" width="80" height="30" rx="8" fill="url(#body_bn)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 25 58 L 25 82 M 35 58 L 35 82 M 45 58 L 45 82 M 55 58 L 55 82 M 65 58 L 65 82 M 75 58 L 75 82" stroke="${c2}" stroke-width="1.5" opacity="0.5"/>
+        <circle cx="20" cy="70" r="7" fill="url(#metal_bn)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="95" y="42" width="15" height="56" rx="3" fill="url(#metal_bn)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 110 50 L 320 42 L 330 70 L 320 100 L 110 92 Z" fill="url(#blade_bn)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 110 55 L 320 48" stroke="#404040" stroke-width="3"/>
+        <path d="M 110 88 L 325 92" stroke="#fff" stroke-width="3" opacity="0.9"/>
+        <path d="M 125 68 L 310 62" stroke="${c2}" stroke-width="2" opacity="0.7"/>
+        <path d="M 120 52 L 125 58 L 135 52 L 140 58 L 150 52 L 155 58 L 165 52" stroke="#0a0a0a" stroke-width="1.5" fill="none"/>
+      </g>
+    </svg>
+  `,
+  m9: (c1, c2, c3) => `
+    <svg viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        ${makeDefs('m9', c1, c2, c3)}
+        <linearGradient id="blade_m9" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#d0d0d0"/>
+          <stop offset="50%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#909090"/>
+        </linearGradient>
+      </defs>
+      <g filter="url(#shadow_m9)">
+        <path d="M 10 75 Q 15 60 35 60 L 90 60 Q 105 70 105 82 L 105 95 Q 105 108 90 108 L 35 108 Q 15 108 10 95 Z" fill="url(#body_m9)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="35" cy="84" r="4" fill="#0a0a0a" opacity="0.7"/>
+        <circle cx="55" cy="84" r="4" fill="#0a0a0a" opacity="0.7"/>
+        <circle cx="75" cy="84" r="4" fill="#0a0a0a" opacity="0.7"/>
+        <circle cx="15" cy="84" r="8" fill="url(#metal_m9)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="103" y="52" width="14" height="64" rx="3" fill="url(#metal_m9)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 117 58 L 330 52 L 340 84 L 330 116 L 117 110 Z" fill="url(#blade_m9)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 117 58 L 330 52" stroke="#404040" stroke-width="3"/>
+        <path d="M 130 58 L 138 66 L 148 58 L 156 66 L 166 58 L 174 66 L 184 58" stroke="#0a0a0a" stroke-width="2" fill="none"/>
+        <path d="M 117 106 L 335 112" stroke="#fff" stroke-width="3" opacity="0.9"/>
+        <path d="M 130 78 L 320 76" stroke="${c2}" stroke-width="2.5" opacity="0.7"/>
+        <ellipse cx="145" cy="84" rx="6" ry="5" fill="#0a0a0a"/>
+      </g>
+    </svg>
+  `,
+  gloves: (c1, c2, c3) => `
+    <svg viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        ${makeDefs('glv', c1, c2, c3)}
+        <radialGradient id="palm_glv" cx="0.4" cy="0.4">
+          <stop offset="0%" stop-color="${c3 || c1}" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="${c2}"/>
+        </radialGradient>
+      </defs>
+      <g filter="url(#shadow_glv)">
+        <path d="M 55 105 Q 45 70 60 55 L 175 55 Q 190 70 180 105 L 175 165 Q 115 180 60 165 Z" fill="url(#palm_glv)" stroke="#0a0a0a" stroke-width="2"/>
+        <path d="M 70 80 Q 110 70 165 80" stroke="${c2}" stroke-width="2.5" fill="none" opacity="0.7"/>
+        <path d="M 70 100 Q 110 90 165 100" stroke="${c2}" stroke-width="2.5" fill="none" opacity="0.7"/>
+        <path d="M 70 120 Q 110 110 165 120" stroke="${c2}" stroke-width="2.5" fill="none" opacity="0.7"/>
+        <path d="M 70 140 Q 110 130 165 140" stroke="${c2}" stroke-width="2.5" fill="none" opacity="0.7"/>
+        <rect x="62" y="20" width="18" height="42" rx="8" fill="url(#palm_glv)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="85" y="12" width="18" height="48" rx="8" fill="url(#palm_glv)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="108" y="12" width="18" height="48" rx="8" fill="url(#palm_glv)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="131" y="20" width="18" height="42" rx="8" fill="url(#palm_glv)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="154" y="32" width="18" height="30" rx="8" fill="url(#palm_glv)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 50 90 Q 25 85 20 105 Q 20 125 45 125 L 55 118 Z" fill="url(#palm_glv)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="52" y="160" width="130" height="22" rx="4" fill="url(#dark_glv)" stroke="#0a0a0a" stroke-width="1.5"/>
+        <path d="M 60 168 L 175 168 M 60 174 L 175 174" stroke="${c2}" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="118" cy="171" r="6" fill="${c1}" stroke="#0a0a0a" stroke-width="1"/>
+      </g>
+    </svg>
+  `
+};
+
+const svgCache = new Map();
+function getWeaponSVG(weaponKey, c1, c2, c3) {
+  const key = weaponKey + '|' + c1 + '|' + c2 + '|' + (c3 || '');
+  if (svgCache.has(key)) return svgCache.get(key);
+  const fn = WEAPON_ART[weaponKey];
+  const result = fn ? fn(c1, c2, c3) : '';
+  svgCache.set(key, result);
+  return result;
+}
+
+// ================== ДАННЫЕ ==================
+const RARITIES = {
+  common:    { name: 'Обычный',     color: '#6a7a9a' },
+  uncommon:  { name: 'Необычный',   color: '#4aa05a' },
+  rare:      { name: 'Редкий',      color: '#3a6ad0' },
+  epic:      { name: 'Эпический',   color: '#a03ad0' },
+  legendary: { name: 'Легендарный', color: '#ffd54a' },
+  mythic:    { name: 'Мифический',  color: '#ff3a5a' }
+};
+
+const WEAPONS = {
+  glock:  { name: 'Glock-18',  type: 'pistol' },
+  usp:    { name: 'USP-S',     type: 'pistol' },
+  p250:   { name: 'P250',      type: 'pistol' },
+  deagle: { name: 'Desert Eagle', type: 'pistol' },
+  fiveseven: { name: 'Five-SeveN', type: 'pistol' },
+  ak47:   { name: 'AK-47',     type: 'rifle' },
+  m4a4:   { name: 'M4A4',      type: 'rifle' },
+  m4a1s:  { name: 'M4A1-S',    type: 'rifle' },
+  awp:    { name: 'AWP',       type: 'sniper' },
+  ssg:    { name: 'SSG 08',    type: 'sniper' },
+  butterfly: { name: 'Нож Бабочка', type: 'knife' },
+  karambit:  { name: 'Керамбит',    type: 'knife' },
+  bayonet:   { name: 'Штык-Нож',    type: 'knife' },
+  m9:        { name: 'M9 Байонет',  type: 'knife' },
+  gloves:    { name: 'Перчатки',    type: 'gloves' }
+};
+
+const SPECIAL_WEAPONS = ['butterfly', 'karambit', 'bayonet', 'm9', 'gloves'];
+const SPECIAL_WEIGHT_MULTIPLIER = 0.25;
+
+const SKINS_POOL = [
+  { weapon: 'glock',  skinName: 'Гроза',          price: 100,  rarity: 'common',    colors: ['#3a5a9a', '#1a2044', '#5a7ac0'] },
+  { weapon: 'usp',    skinName: 'Лес',            price: 130,  rarity: 'common',    colors: ['#2a6a2a', '#1a3a1a', '#4a8a4a'] },
+  { weapon: 'p250',   skinName: 'Пепел',          price: 150,  rarity: 'common',    colors: ['#6a6a6a', '#2a2a2a', '#8a8a8a'] },
+  { weapon: 'ak47',   skinName: 'Синий Ламинат',  price: 180,  rarity: 'common',    colors: ['#2a4a9a', '#0a1a4a', '#4a6ac0'] },
+  { weapon: 'm4a4',   skinName: 'Пустыня',        price: 220,  rarity: 'common',    colors: ['#b09060', '#6a5030', '#d0b080'] },
+  { weapon: 'deagle', skinName: 'Бронза',         price: 350,  rarity: 'uncommon',  colors: ['#b0802a', '#5a3a10', '#d0a040'] },
+  { weapon: 'fiveseven', skinName: 'Неон',        price: 420,  rarity: 'uncommon',  colors: ['#20d0a0', '#0a5a4a', '#40f0c0'] },
+  { weapon: 'm4a1s',  skinName: 'Неон Райдер',    price: 500,  rarity: 'uncommon',  colors: ['#d040c0', '#3a1040', '#f060e0'] },
+  { weapon: 'awp',    skinName: 'Лазурь',         price: 850,  rarity: 'rare',      colors: ['#3060d0', '#101a50', '#5090f0'] },
+  { weapon: 'ak47',   skinName: 'Красная Линия',  price: 1100, rarity: 'rare',      colors: ['#d03030', '#5a1010', '#f05050'] },
+  { weapon: 'm4a4',   skinName: 'Кибер',          price: 1400, rarity: 'rare',      colors: ['#00d0ff', '#0a3050', '#40e0ff'] },
+  { weapon: 'ssg',    skinName: 'Кровавое Дерево',price: 1800, rarity: 'rare',      colors: ['#8a1010', '#3a0000', '#a03030'] },
+  { weapon: 'awp',    skinName: 'Неоновая Революция', price: 2500, rarity: 'epic',   colors: ['#00ff88', '#ff00aa', '#aaffcc'] },
+  { weapon: 'awp',    skinName: 'Дракон',         price: 5500, rarity: 'epic',      colors: ['#20a050', '#0a3a20', '#40c070'] },
+  { weapon: 'butterfly', skinName: 'Сталь',       price: 3200, rarity: 'epic',      colors: ['#c0c0c0', '#404040', '#e0e0e0'] },
+  { weapon: 'karambit',  skinName: 'Синий',       price: 4500, rarity: 'epic',      colors: ['#2060d0', '#0a1a50', '#4080f0'] },
+  { weapon: 'gloves',    skinName: 'Спорт',       price: 6000, rarity: 'epic',      colors: ['#d0a040', '#3a2a10', '#f0c060'] },
+  { weapon: 'bayonet',   skinName: 'Градиент',    price: 12000, rarity: 'legendary', colors: ['#ff30a0', '#30a0ff', '#ff60c0'] },
+  { weapon: 'karambit',  skinName: 'Убийца',      price: 18000, rarity: 'legendary', colors: ['#ff5050', '#3a0a0a', '#ff8080'] },
+  { weapon: 'gloves',    skinName: 'Бога',        price: 25000, rarity: 'legendary', colors: ['#ffd54a', '#8a5a10', '#ffe880'] },
+  { weapon: 'karambit',  skinName: 'Изумруд',     price: 45000, rarity: 'mythic',    colors: ['#00ff80', '#0a3a20', '#40ffa0'] },
+  { weapon: 'm9',        skinName: 'Кровавая Паутина', price: 65000, rarity: 'mythic', colors: ['#ff2030', '#4a0010', '#ff4050'] },
+  { weapon: 'awp',       skinName: 'Драконий Лор', price: 90000, rarity: 'mythic',   colors: ['#ff2030', '#101040', '#ff4060'] }
+];
+
+const CASES = [
+  {
+    id: 'bronze', name: 'Бронзовый', emoji: '📦', price: 100, color: '#a07020',
+    weights: { common: 65, uncommon: 25, rare: 8, epic: 1.8, legendary: 0.2, mythic: 0 }
+  },
+  {
+    id: 'silver', name: 'Серебряный', emoji: '🎁', price: 500, color: '#c0c0c0',
+    weights: { common: 40, uncommon: 35, rare: 18, epic: 6, legendary: 0.9, mythic: 0.1 }
+  },
+  {
+    id: 'gold', name: 'Золотой', emoji: '💼', price: 2500, color: '#ffd54a',
+    weights: { common: 15, uncommon: 30, rare: 32, epic: 18, legendary: 4.5, mythic: 0.5 }
+  },
+  {
+    id: 'diamond', name: 'Алмазный', emoji: '💎', price: 10000, color: '#00d0ff',
+    weights: { common: 3, uncommon: 12, rare: 30, epic: 38, legendary: 15, mythic: 2 }
+  },
+  {
+    id: 'mythic', name: 'Мифический', emoji: '👑', price: 50000, color: '#ff3a5a',
+    weights: { common: 0, uncommon: 0, rare: 8, epic: 30, legendary: 47, mythic: 15 }
+  }
+];
+
+// Возвращает 8 лучших скинов, которые могут выпасть из кейса (для превью)
+function getCaseBestSkins(caseObj, count = 8) {
+  // Собираем пул скинов для кейса (по всем редкостям с весом > 0)
+  const caseSkins = [];
+  Object.entries(caseObj.weights).forEach(([rarity, w]) => {
+    if (w > 0) {
+      SKINS_POOL.filter(s => s.rarity === rarity).forEach(s => {
+        caseSkins.push({ ...s, weight: w });
+      });
+    }
+  });
+  // Сортируем по цене — показываем самые дорогие/интересные
+  caseSkins.sort((a, b) => b.price - a.price);
+  // Возвращаем уникальные по имени скина
+  const seen = new Set();
+  const result = [];
+  for (const s of caseSkins) {
+    const key = s.weapon + '|' + s.skinName;
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(s);
+      if (result.length >= count) break;
+    }
+  }
+  return result;
+}
+
+const MULTIPLIERS = [1.5, 2, 3, 5, 10, 20];
+
+// ================== СОСТОЯНИЕ ==================
+let state = {
+  balance: 500,
+  inventory: [],
+  totalOpened: 0,
+  totalSpent: 0
+};
+
+let upgradeFromSkin = null;
+let upgradeMultiplier = 2;
+let selectedBattleCase = 'bronze';
+let spinning = false;
+let wheelSpinning = false;
+let openingModal = false;
+
+// ================== LOCALSTORAGE ==================
+function save() { 
+  try { localStorage.setItem('caseBattleSave_v6', JSON.stringify(state)); } catch(e){}
+}
+function load() {
+  try {
+    const s = localStorage.getItem('caseBattleSave_v6');
+    if (s) state = Object.assign(state, JSON.parse(s));
+  } catch(e) {}
+}
+
+// ================== УТИЛИТЫ ==================
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function formatMoney(n) { return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = 'toast ' + type; }, 2400);
+}
+
+function randomByWeights(weights) {
+  const total = Object.values(weights).reduce((a,b)=>a+b, 0);
+  let r = Math.random() * total;
+  for (const [rarity, w] of Object.entries(weights)) {
+    if (r < w) return rarity;
+    r -= w;
+  }
+  return 'common';
+}
+
+function rollSkin(caseObj) {
+  const rarity = randomByWeights(caseObj.weights);
+  let pool = SKINS_POOL.filter(s => s.rarity === rarity);
+  if (pool.length === 0) {
+    for (const r of ['legendary','epic','rare','uncommon','common']) {
+      pool = SKINS_POOL.filter(s => s.rarity === r);
+      if (pool.length) break;
+    }
+  }
+  const weighted = pool.map(skin => ({
+    skin,
+    weight: SPECIAL_WEAPONS.includes(skin.weapon) ? SPECIAL_WEIGHT_MULTIPLIER : 1
+  }));
+  const totalWeight = weighted.reduce((sum, x) => sum + x.weight, 0);
+  let r = Math.random() * totalWeight;
+  let chosen = weighted[0].skin;
+  for (const item of weighted) {
+    if (r < item.weight) { chosen = item.skin; break; }
+    r -= item.weight;
+  }
+  const base = chosen;
+  const variation = 0.9 + Math.random() * 0.2;
+  const floatVal = (Math.random() * 0.5 + 0.01).toFixed(3);
+  return {
+    id: uid(),
+    weapon: base.weapon,
+    weaponName: WEAPONS[base.weapon].name,
+    weaponType: WEAPONS[base.weapon].type,
+    skinName: base.skinName,
+    name: WEAPONS[base.weapon].name + ' | ' + base.skinName,
+    price: Math.round(base.price * variation),
+    rarity: base.rarity,
+    colors: base.colors,
+    float: floatVal
+  };
+}
+
+function skinVisualHTML(skin, showFloat = true) {
+  const c1 = skin.colors[0], c2 = skin.colors[1], c3 = skin.colors[2];
+  const rar = RARITIES[skin.rarity];
+  const svg = getWeaponSVG(skin.weapon, c1, c2, c3);
+  const bg = `radial-gradient(ellipse at 50% 40%, ${c1}55 0%, ${c2}cc 60%, #0a0d1a 100%)`;
+  return `
+    <div class="skin-visual" style="background: ${bg};">
+      <div class="weapon-img">${svg}</div>
+      <div class="weapon-name-tag">${skin.weaponName || WEAPONS[skin.weapon].name}</div>
+      ${showFloat ? `<div class="float-badge" style="color:${rar.color}">${skin.float}</div>` : ''}
+    </div>
+  `;
+}
+
+// ================== UI ==================
+function updateStats() {
+  document.getElementById('balance').textContent = formatMoney(state.balance);
+  document.getElementById('invCount').textContent = state.inventory.length;
+  const total = state.inventory.reduce((s,i)=>s+i.price, 0);
+  document.getElementById('totalValue').textContent = formatMoney(total);
+}
+
+// ================== CASES (с превью скинов) ==================
+function renderCases() {
+  const grid = document.getElementById('casesGrid');
+  grid.innerHTML = '';
+  CASES.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'case-card';
+    card.style.color = c.color;
+
+    // Превью 8 лучших скинов
+    const bestSkins = getCaseBestSkins(c, 8);
+    const previewHTML = bestSkins.map(s => {
+      const rar = RARITIES[s.rarity];
+      const fakeSkin = {
+        weapon: s.weapon,
+        weaponName: WEAPONS[s.weapon].name,
+        colors: s.colors,
+        rarity: s.rarity,
+        float: ''
+      };
+      return `
+        <div class="preview-skin" style="border-color: ${rar.color};" title="${WEAPONS[s.weapon].name} | ${s.skinName}">
+          ${skinVisualHTML(fakeSkin, false)}
+          <div class="preview-rarity-bar" style="background: linear-gradient(90deg, transparent, ${rar.color}, transparent);"></div>
+        </div>
+      `;
+    }).join('');
+
+    const raritiesHTML = Object.entries(c.weights)
+      .filter(([_,w]) => w > 0)
+      .map(([r,w]) => {
+        const col = RARITIES[r].color;
+        return `<span class="chance-pill" style="color:${col}; border:1px solid ${col}44;">${r.charAt(0).toUpperCase()}: ${w}%</span>`;
+      }).join('');
+
+    card.innerHTML = `
+      <div class="case-glow"></div>
+      <div class="case-inner">
+        <div class="case-header">
+          <div class="case-emoji">${c.emoji}</div>
+          <div class="case-title-block">
+            <div class="case-name">${c.name} кейс</div>
+            <div class="case-price">${formatMoney(c.price)}</div>
+          </div>
+        </div>
+
+        <div class="case-preview-title">
+          <span>🎯 Лучшие скины</span>
+          <span>от ${formatMoney(Math.min(...bestSkins.map(s => s.price)))} до ${formatMoney(Math.max(...bestSkins.map(s => s.price)))}</span>
+        </div>
+        <div class="case-preview">${previewHTML}</div>
+
+        <div class="case-chances">${raritiesHTML}</div>
+
+        <div class="case-actions">
+          <button class="btn" data-open="${c.id}" ${state.balance < c.price ? 'disabled' : ''}>🔓 Открыть</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('[data-open]').forEach(btn => {
+    btn.addEventListener('click', () => openCaseAnimated(btn.dataset.open));
+  });
+}
+
+// ================== АНИМАЦИЯ ЛЕНТЫ ==================
+function animateTrack(track, targetX, duration) {
+  if (track._anim) {
+    try { track._anim.cancel(); } catch(e){}
+    track._anim = null;
+  }
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0px)';
+
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const anim = track.animate(
+          [
+            { transform: 'translateX(0px)' },
+            { transform: `translateX(${targetX}px)` }
+          ],
+          {
+            duration: duration,
+            easing: 'cubic-bezier(0.15, 0.9, 0.25, 1)',
+            fill: 'forwards'
+          }
+        );
+        track._anim = anim;
+        anim.onfinish = () => {
+          track.style.transform = `translateX(${targetX}px)`;
+          resolve();
+        };
+        anim.oncancel = () => resolve();
+      });
+    });
+  });
+}
+
+function animateArrow(arrow, targetAngle, duration) {
+  if (arrow._anim) {
+    try { arrow._anim.cancel(); } catch(e){}
+    arrow._anim = null;
+  }
+  arrow.style.transition = 'none';
+  arrow.style.transform = 'translateY(-50%) rotate(0deg)';
+
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const anim = arrow.animate(
+          [
+            { transform: 'translateY(-50%) rotate(0deg)' },
+            { transform: `translateY(-50%) rotate(${targetAngle}deg)` }
+          ],
+          {
+            duration: duration,
+            easing: 'cubic-bezier(0.18, 0.85, 0.25, 1)',
+            fill: 'forwards'
+          }
+        );
+        arrow._anim = anim;
+        anim.onfinish = () => {
+          arrow.style.transform = `translateY(-50%) rotate(${targetAngle}deg)`;
+          resolve();
+        };
+        anim.oncancel = () => resolve();
+      });
+    });
+  });
+}
+
+// ================== CASE OPENING ==================
+async function openCaseAnimated(caseId) {
+  if (openingModal) return;
+  const c = CASES.find(x => x.id === caseId);
+  if (!c) return;
+  if (state.balance < c.price) { showToast('Недостаточно средств!', 'error'); return; }
+
+  openingModal = true;
+  state.balance -= c.price;
+  state.totalSpent += c.price;
+  state.totalOpened++;
+  updateStats();
+  renderCases();
+
+  const modal = document.getElementById('caseModal');
+  document.getElementById('modalTitle').textContent = `${c.emoji} ${c.name} кейс`;
+  document.getElementById('openResult').innerHTML = '';
+  document.getElementById('closeModalBtn').style.display = 'none';
+  modal.classList.add('show');
+
+  const track = document.getElementById('openTrack');
+  track.innerHTML = '';
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0)';
+
+  const itemW = window.innerWidth < 600 ? 140 : 170;
+  const itemCount = 60;
+  const winIndex = 20 + Math.floor(Math.random() * (itemCount - 40));
+
+  let winSkin = null;
+  const items = [];
+  for (let i = 0; i < itemCount; i++) {
+    if (i === winIndex) {
+      winSkin = rollSkin(c);
+      items.push(winSkin);
+    } else {
+      items.push(rollSkin(c));
+    }
+  }
+
+  items.forEach(skin => {
+    const el = document.createElement('div');
+    el.className = 'open-item';
+    const rar = RARITIES[skin.rarity];
+    el.style.borderTop = `4px solid ${rar.color}`;
+    el.style.background = `linear-gradient(180deg, ${rar.color}22, transparent)`;
+    el.innerHTML = `
+      ${skinVisualHTML(skin, false)}
+      <div class="name">${skin.name}</div>
+    `;
+    track.appendChild(el);
+  });
+
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  const container = track.parentElement;
+  const containerW = container.offsetWidth || 800;
+  const centerOffset = containerW / 2 - itemW / 2;
+  const jitter = (Math.random() - 0.5) * (itemW * 0.6);
+  const targetX = -(winIndex * itemW) + centerOffset + jitter;
+
+  await animateTrack(track, targetX, 5500);
+
+  state.inventory.push(winSkin);
+  save();
+  updateStats();
+  renderInventory();
+  renderUpgradePicker();
+  renderCases();
+
+  const rar = RARITIES[winSkin.rarity];
+  document.getElementById('openResult').innerHTML = `
+    <div class="result-card" style="border-color:${rar.color}; box-shadow: 0 0 30px ${rar.color}66;">
+      ${skinVisualHTML(winSkin)}
+      <div class="name">${winSkin.name}</div>
+      <div class="price">${formatMoney(winSkin.price)}</div>
+      <div class="rarity-tag" style="color:${rar.color}">${rar.name}</div>
+    </div>
+  `;
+  document.getElementById('closeModalBtn').style.display = 'block';
+
+  if (winSkin.rarity === 'mythic' || winSkin.rarity === 'legendary') {
+    showToast(`🎉 ${winSkin.name}!`, 'success');
+  }
+  openingModal = false;
+}
+
+document.getElementById('closeModalBtn').addEventListener('click', () => {
+  document.getElementById('caseModal').classList.remove('show');
+});
+
+// ================== BATTLE ==================
+function renderBattleSelect() {
+  const sel = document.getElementById('battleCaseSelect');
+  sel.innerHTML = '';
+  CASES.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${c.emoji} ${c.name} — ${formatMoney(c.price)}`;
+    sel.appendChild(opt);
+  });
+  sel.value = selectedBattleCase;
+  sel.addEventListener('change', () => { selectedBattleCase = sel.value; });
+}
+
+document.getElementById('openBattleBtn').addEventListener('click', async () => {
+  if (spinning) return;
+  const c = CASES.find(x => x.id === selectedBattleCase);
+  if (!c) return;
+  if (state.balance < c.price) { showToast('Недостаточно средств!', 'error'); return; }
+
+  spinning = true;
+  state.balance -= c.price;
+  state.totalSpent += c.price;
+  updateStats();
+  renderCases();
+  document.getElementById('battleResult').textContent = '';
+  document.getElementById('openBattleBtn').disabled = true;
+
+  const track = document.getElementById('rouletteTrack');
+  track.innerHTML = '';
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0)';
+
+  const itemW = window.innerWidth < 600 ? 140 : 170;
+  const itemCount = 60;
+  const winIndex = 15 + Math.floor(Math.random() * (itemCount - 30));
+
+  let winSkin = null;
+  for (let i = 0; i < itemCount; i++) {
+    let skin;
+    if (i === winIndex) { skin = rollSkin(c); winSkin = skin; }
+    else skin = rollSkin(c);
+    const el = document.createElement('div');
+    el.className = 'roulette-item';
+    const rar = RARITIES[skin.rarity];
+    el.style.borderTop = `4px solid ${rar.color}`;
+    el.style.background = `linear-gradient(180deg, ${rar.color}22, transparent)`;
+    el.innerHTML = `
+      ${skinVisualHTML(skin, false)}
+      <div class="name">${skin.name}</div>
+    `;
+    track.appendChild(el);
+  }
+
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  const container = track.parentElement;
+  const containerW = container.offsetWidth || 800;
+  const centerOffset = containerW / 2 - itemW / 2;
+  const jitter = (Math.random() - 0.5) * (itemW * 0.6);
+  const targetX = -(winIndex * itemW) + centerOffset + jitter;
+
+  const duration = 5500 + Math.random() * 1500;
+  await animateTrack(track, targetX, duration);
+
+  state.inventory.push(winSkin);
+  state.totalOpened++;
+  save();
+  updateStats();
+  renderInventory();
+  renderUpgradePicker();
+  renderCases();
+
+  const rar = RARITIES[winSkin.rarity];
+  document.getElementById('battleResult').innerHTML =
+    `<span style="color:${rar.color}">${winSkin.name} — ${formatMoney(winSkin.price)} (${rar.name})</span>`;
+
+  spinning = false;
+  document.getElementById('openBattleBtn').disabled = false;
+});
+
+// ================== INVENTORY ==================
+function renderInventory() {
+  const grid = document.getElementById('inventoryGrid');
+  if (state.inventory.length === 0) {
+    grid.innerHTML = '<div class="empty-msg">Инвентарь пуст. Откройте кейс!</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  const sorted = [...state.inventory].sort((a,b)=>b.price - a.price);
+  sorted.forEach(skin => {
+    const el = document.createElement('div');
+    el.className = `inv-item rarity-${skin.rarity}`;
+    const rar = RARITIES[skin.rarity];
+    el.innerHTML = `
+      ${skinVisualHTML(skin)}
+      <div class="rarity-tag" style="color:${rar.color}">${rar.name}</div>
+      <div class="name">${skin.name}</div>
+      <div class="price">${formatMoney(skin.price)}</div>
+      <button class="btn sell small" data-sell="${skin.id}">💰 Продать</button>
+    `;
+    grid.appendChild(el);
+  });
+
+  grid.querySelectorAll('[data-sell]').forEach(btn => {
+    btn.addEventListener('click', () => sellSkin(btn.dataset.sell));
+  });
+}
+
+function sellSkin(id) {
+  const idx = state.inventory.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  const skin = state.inventory[idx];
+  state.balance += skin.price;
+  state.inventory.splice(idx, 1);
+  save();
+  updateStats();
+  renderInventory();
+  renderUpgradePicker();
+  renderCases();
+  if (upgradeFromSkin && upgradeFromSkin.id === id) {
+    upgradeFromSkin = null;
+    renderUpgradeSlots();
+  }
+  showToast(`Продано: ${skin.name} за ${formatMoney(skin.price)}`, 'success');
+}
+
+document.getElementById('sellAllBtn').addEventListener('click', () => {
+  if (state.inventory.length === 0) { showToast('Инвентарь пуст', 'error'); return; }
+  const total = state.inventory.reduce((s,i)=>s+i.price, 0);
+  state.balance += total;
+  state.inventory = [];
+  upgradeFromSkin = null;
+  save();
+  updateStats();
+  renderInventory();
+  renderUpgradePicker();
+  renderUpgradeSlots();
+  renderCases();
+  showToast(`Продано всё за ${formatMoney(total)}`, 'success');
+});
+
+// ================== UPGRADER ==================
+function renderMultiplierBar() {
+  const bar = document.getElementById('multiplierBar');
+  bar.innerHTML = '';
+  MULTIPLIERS.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'mult-btn' + (m === upgradeMultiplier ? ' active' : '');
+    btn.textContent = '×' + m;
+    btn.disabled = wheelSpinning || !upgradeFromSkin;
+    btn.addEventListener('click', () => {
+      if (wheelSpinning) return;
+      upgradeMultiplier = m;
+      renderMultiplierBar();
+      renderUpgradeSlots();
+      renderUpgradeWheel();
+    });
+    bar.appendChild(btn);
+  });
+}
+
+function getUpgradeTarget(fromSkin, multiplier) {
+  const targetPrice = Math.round(fromSkin.price * multiplier);
+  let best = SKINS_POOL[0];
+  let bestDiff = Math.abs(SKINS_POOL[0].price - targetPrice);
+  SKINS_POOL.forEach(s => {
+    const d = Math.abs(s.price - targetPrice);
+    if (d < bestDiff) { best = s; bestDiff = d; }
+  });
+  return {
+    weapon: best.weapon,
+    weaponName: WEAPONS[best.weapon].name,
+    weaponType: WEAPONS[best.weapon].type,
+    skinName: best.skinName,
+    name: WEAPONS[best.weapon].name + ' | ' + best.skinName,
+    price: targetPrice,
+    rarity: best.rarity,
+    colors: best.colors,
+    float: (Math.random() * 0.5 + 0.01).toFixed(3)
+  };
+}
+
+function calculateChance(fromPrice, toPrice) {
+  const ratio = fromPrice / toPrice;
+  let chance = ratio * 100;
+  chance = Math.max(3, Math.min(95, chance));
+  return Math.round(chance * 10) / 10;
+}
+
+function renderUpgradeSlots() {
+  const fromEl = document.getElementById('upgFromSlot');
+  const toEl = document.getElementById('upgToSlot');
+  const chanceBig = document.getElementById('chanceBig');
+  const profitInfo = document.getElementById('profitInfo');
+  const btn = document.getElementById('doUpgradeBtn');
+
+  if (!upgradeFromSkin) {
+    fromEl.className = 'upg-slot empty';
+    fromEl.innerHTML = 'Выберите скин из инвентаря ниже';
+    toEl.className = 'upg-slot empty';
+    toEl.innerHTML = 'Выберите скин для апгрейда';
+    chanceBig.textContent = '—';
+    chanceBig.className = 'chance-big';
+    profitInfo.innerHTML = '';
+    btn.disabled = true;
+    return;
+  }
+
+  const target = getUpgradeTarget(upgradeFromSkin, upgradeMultiplier);
+  const chance = calculateChance(upgradeFromSkin.price, target.price);
+
+  const rarFrom = RARITIES[upgradeFromSkin.rarity];
+  const rarTo = RARITIES[target.rarity];
+
+  fromEl.className = `upg-slot rarity-${upgradeFromSkin.rarity}`;
+  fromEl.innerHTML = `
+    ${skinVisualHTML(upgradeFromSkin)}
+    <div class="name">${upgradeFromSkin.name}</div>
+    <div class="price">${formatMoney(upgradeFromSkin.price)}</div>
+    <div class="rarity-tag" style="color:${rarFrom.color}">${rarFrom.name}</div>
+  `;
+
+  toEl.className = `upg-slot rarity-${target.rarity}`;
+  toEl.innerHTML = `
+    ${skinVisualHTML(target)}
+    <div class="name">${target.name}</div>
+    <div class="price">${formatMoney(target.price)}</div>
+    <div class="rarity-tag" style="color:${rarTo.color}">${rarTo.name}</div>
+  `;
+
+  chanceBig.textContent = chance + '%';
+  chanceBig.className = 'chance-big' + (chance < 20 ? ' low' : chance < 50 ? ' mid' : '');
+
+  const profit = target.price - upgradeFromSkin.price;
+  profitInfo.innerHTML = `Прибыль при успехе: <span class="plus">+${formatMoney(profit)}</span> · Потеря при провале: <span class="minus">-${formatMoney(upgradeFromSkin.price)}</span>`;
+
+  btn.disabled = false;
+  return { target, chance };
+}
+
+// ================== WHEEL ==================
+const SEGMENTS = 20;
+
+function renderUpgradeWheel() {
+  const outer = document.getElementById('upgWheelOuter');
+  if (!upgradeFromSkin) {
+    outer.innerHTML = '';
+    outer._greenSegments = [];
+    outer._redSegments = [];
+    return;
+  }
+  const target = getUpgradeTarget(upgradeFromSkin, upgradeMultiplier);
+  const chance = calculateChance(upgradeFromSkin.price, target.price);
+
+  const greenCount = Math.max(1, Math.round(SEGMENTS * chance / 100));
+  const segments = [];
+  for (let i = 0; i < SEGMENTS; i++) segments.push(i < greenCount ? 'green' : 'red');
+  for (let i = segments.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [segments[i], segments[j]] = [segments[j], segments[i]];
+  }
+
+  const size = 260;
+  const cx = size / 2, cy = size / 2, r = size / 2 - 4;
+  const segAngle = 360 / SEGMENTS;
+
+  let svg = `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#0a0d1a"/>`;
+
+  segments.forEach((type, i) => {
+    const startAngle = i * segAngle - 90 - segAngle / 2;
+    const endAngle = startAngle + segAngle;
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+    const x1 = cx + r * Math.cos(startRad);
+    const y1 = cy + r * Math.sin(startRad);
+    const x2 = cx + r * Math.cos(endRad);
+    const y2 = cy + r * Math.sin(endRad);
+    const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
+    const fill = type === 'green' ? 'url(#greenGrad)' : 'url(#redGrad)';
+    svg += `<path d="${path}" fill="${fill}" stroke="#0a0d1a" stroke-width="1.5"/>`;
+  });
+
+  svg += `
+    <defs>
+      <radialGradient id="greenGrad" cx="50%" cy="50%">
+        <stop offset="0%" stop-color="#5ac06a"/>
+        <stop offset="100%" stop-color="#2a6a3a"/>
+      </radialGradient>
+      <radialGradient id="redGrad" cx="50%" cy="50%">
+        <stop offset="0%" stop-color="#d04a5a"/>
+        <stop offset="100%" stop-color="#7a1a2a"/>
+      </radialGradient>
+    </defs>
+  `;
+  svg += `</svg>`;
+  outer.innerHTML = svg;
+
+  outer._greenSegments = segments.map((t, i) => t === 'green' ? i : -1).filter(i => i >= 0);
+  outer._redSegments = segments.map((t, i) => t === 'red' ? i : -1).filter(i => i >= 0);
+  outer._segAngle = segAngle;
+  outer._segments = segments;
+}
+
+// ================== UPGRADE ACTION ==================
+document.getElementById('doUpgradeBtn').addEventListener('click', async () => {
+  if (!upgradeFromSkin || wheelSpinning) return;
+
+  const idx = state.inventory.findIndex(s => s.id === upgradeFromSkin.id);
+  if (idx === -1) { upgradeFromSkin = null; renderUpgradeSlots(); return; }
+
+  const target = getUpgradeTarget(upgradeFromSkin, upgradeMultiplier);
+  const chance = calculateChance(upgradeFromSkin.price, target.price);
+  const roll = Math.random() * 100;
+  const isWin = roll < chance;
+
+  wheelSpinning = true;
+  document.getElementById('doUpgradeBtn').disabled = true;
+  document.getElementById('upgResult').textContent = '';
+  renderMultiplierBar();
+
+  renderUpgradeWheel();
+  const outer = document.getElementById('upgWheelOuter');
+
+  const arrow = document.getElementById('upgArrow');
+  arrow.style.transition = 'none';
+  arrow.style.transform = 'translateY(-50%) rotate(0deg)';
+  void arrow.offsetWidth;
+
+  let targetSegment;
+  if (isWin) {
+    const greens = outer._greenSegments || [0];
+    targetSegment = greens[Math.floor(Math.random() * greens.length)];
+  } else {
+    const reds = outer._redSegments || [1];
+    targetSegment = reds[Math.floor(Math.random() * reds.length)];
+  }
+
+  const segAngle = outer._segAngle || 18;
+  const segCenter = targetSegment * segAngle - 90;
+  const jitter = (Math.random() - 0.5) * (segAngle * 0.7);
+  const fullTurns = 5 + Math.floor(Math.random() * 5);
+  const finalAngle = fullTurns * 360 + segCenter + jitter;
+
+  const duration = 4500 + Math.random() * 1500;
+  await animateArrow(arrow, finalAngle, duration);
+
+  const currentIdx = state.inventory.findIndex(s => s.id === upgradeFromSkin.id);
+  if (currentIdx !== -1) {
+    if (isWin) {
+      const newSkin = {
+        id: uid(),
+        weapon: target.weapon,
+        weaponName: target.weaponName,
+        weaponType: target.weaponType,
+        skinName: target.skinName,
+        name: target.name,
+        price: target.price,
+        rarity: target.rarity,
+        colors: target.colors,
+        float: target.float
+      };
+      state.inventory.splice(currentIdx, 1);
+      state.inventory.push(newSkin);
+      document.getElementById('upgResult').innerHTML =
+        `<span style="color:#4aa05a;">✅ УСПЕХ! ${newSkin.name} — ${formatMoney(newSkin.price)}</span>`;
+      showToast(`✅ Апгрейд успешен! ${newSkin.name}`, 'success');
+    } else {
+      const lostSkin = state.inventory[currentIdx];
+      state.inventory.splice(currentIdx, 1);
+      document.getElementById('upgResult').innerHTML =
+        `<span style="color:#d03a3a;">❌ ПРОВАЛ! ${lostSkin.name} сгорел</span>`;
+      showToast(`❌ Провал! ${lostSkin.name} сгорел`, 'error');
+    }
+  }
+
+  upgradeFromSkin = null;
+  save();
+  updateStats();
+  renderInventory();
+  renderUpgradePicker();
+  renderUpgradeSlots();
+  renderUpgradeWheel();
+  renderCases();
+  wheelSpinning = false;
+  renderMultiplierBar();
+});
+
+// ================== PICKER ==================
+function renderUpgradePicker() {
+  const grid = document.getElementById('upgPickerGrid');
+  document.getElementById('upgInvCount').textContent = state.inventory.length;
+  if (state.inventory.length === 0) {
+    grid.innerHTML = '<div class="empty-msg">Нет скинов для апгрейда</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  const sorted = [...state.inventory].sort((a,b)=>b.price - a.price);
+  sorted.forEach(skin => {
+    const el = document.createElement('div');
+    el.className = `picker-item rarity-${skin.rarity}`;
+    el.innerHTML = `
+      ${skinVisualHTML(skin, false)}
+      <div class="name">${skin.name}</div>
+      <div class="price">${formatMoney(skin.price)}</div>
+    `;
+    if (upgradeFromSkin && upgradeFromSkin.id === skin.id) el.classList.add('selected');
+    el.addEventListener('click', () => {
+      if (wheelSpinning) return;
+      upgradeFromSkin = skin;
+      renderUpgradeSlots();
+      renderUpgradeWheel();
+      renderUpgradePicker();
+    });
+    grid.appendChild(el);
+  });
+}
+
+document.getElementById('clearUpgBtn').addEventListener('click', () => {
+  if (wheelSpinning) return;
+  upgradeFromSkin = null;
+  renderUpgradeSlots();
+  renderUpgradeWheel();
+  renderUpgradePicker();
+});
+
+// ================== TABS ==================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'inventory') renderInventory();
+    if (tab.dataset.tab === 'upgrade') {
+      renderUpgradePicker();
+      renderUpgradeSlots();
+      renderUpgradeWheel();
+      renderMultiplierBar();
+    }
+  });
+});
+
+// ================== INIT ==================
+function init() {
+  load();
+  updateStats();
+  renderCases();
+  renderBattleSelect();
+  renderInventory();
+  renderUpgradePicker();
+  renderUpgradeSlots();
+  renderUpgradeWheel();
+  renderMultiplierBar();
+  save();
+}
+
+init();
+</script>
+</body>
+</html>
